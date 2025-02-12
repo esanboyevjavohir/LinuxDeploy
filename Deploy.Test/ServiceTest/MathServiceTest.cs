@@ -25,5 +25,18 @@ namespace Deploy.Test.ServiceTest
 
             Assert.Equal(10, result);
         }
+
+        [Theory]
+        [InlineData(long.MaxValue, 2)]
+        [InlineData(long.MinValue, -3)]
+
+        public async Task ThrowOverflowExceptionWhenNotInRange(long c, long d)
+        {
+            var mathService = services.GetRequiredService<IMathService>();
+
+            var task = async () => await mathService.AddAsync(c, d, CancellationToken.None);
+
+            await Assert.ThrowsAsync<OverflowException>(task);
+        }
     }
 }

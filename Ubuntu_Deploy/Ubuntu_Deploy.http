@@ -1,0 +1,6 @@
+@Ubuntu_Deploy_HostAddress = http://localhost:5091
+
+GET {{Ubuntu_Deploy_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

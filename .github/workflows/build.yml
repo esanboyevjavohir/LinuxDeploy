@@ -1,0 +1,22 @@
+name: Build, Test and Deploy
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '8.0.x'
+      - name: Restore dependencies
+        working-directory: Ubuntu_Deploy
+        run: dotnet restore Ubuntu_Deploy.sln
+      - name: Build project
+        working-directory: Ubuntu_Deploy
+        run: dotnet build Ubuntu_Deploy.sln --configuration Release

@@ -89,3 +89,51 @@ jobs:
             docker ps
 
 
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Copy project files to remote server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_PASSWORD }}
+          source: "."
+          target: "/home/${{ secrets.SERVER_USER }}/my_project"
+
+      - name: Deploy application on remote server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_ID }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            cd /home/${{ secrets.SERVER_USER }}/my_project
+
+            echo "Building Docker image..."
+            docker build -t ubuntu_deploy .
+
+            echo "Stopping and removing old container if exists..."
+            docker stop ubuntu_deploy || true
+            docker rm ubuntu_deploy || true
+
+            echo "Running new container..."
+            docker run -d -p 8080:8080 -p 8081:8081 --name ubuntu_deploy ubuntu_deploy
+
+            echo "Waiting for container to start..."
+            sleep 5
+
+            if ! docker ps -q -f name=ubuntu_deploy; then
+              echo "❌ Container failed to start"
+              docker logs ubuntu_deploy
+              exit 1
+            fi
+
+            echo "✅ Container successfully started"
+            docker ps
+
